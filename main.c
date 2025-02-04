@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 enum PieceType
 {
@@ -65,26 +66,26 @@ void printBoard(struct ChessPiece ***board) {
       struct ChessPiece *square = board[x][y];
 
       if (square == NULL) {
-        toPrint = " ";
+        toPrint = ' ';
       } else {
         switch (square->type) {
           case PAWN:
-            toPrint = "P";
+            toPrint = 'P';
             break;
           case ROOK:
-            toPrint = "R";
+            toPrint = 'R';
             break;
           case KNIGHT:
-            toPrint = "N";
+            toPrint = 'N';
             break;
           case BISHOP:
-            toPrint = "B";
+            toPrint = 'B';
             break;
           case QUEEN:
-            toPrint = "Q";
+            toPrint = 'Q';
             break;
           case KING:
-            toPrint = "K";
+            toPrint = 'K';
             break;
           default:
             break;
@@ -98,13 +99,19 @@ void printBoard(struct ChessPiece ***board) {
       }
     }
 
-    printf("%c", "\n");
+    printf("%s", "\n");
   }
 }
 
 int main(int argc, char **args)
 {
   struct ChessPiece ***board = (struct ChessPiece ***) malloc(8*8*sizeof(struct ChessPiece *));
+
+  initialiseBoard(board);
+
+  printBoard(board);
+
+  free(board);
 
   return 0;
 }

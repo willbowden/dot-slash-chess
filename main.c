@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "main.h"
+
+#include "moves.h"
 
 const enum PieceType DEFAULT_LAYOUT[] = {ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN};
 
-void initialiseBoard(BOARD board)
+void initialiseBoard(Board board)
 {
   int x, y, step;
 
@@ -49,7 +50,7 @@ void initialiseBoard(BOARD board)
   }
 }
 
-void printBoard(BOARD board)
+void printBoard(Board board)
 {
   int x, y;
   char toPrint;
@@ -105,7 +106,7 @@ void printBoard(BOARD board)
   printf("%s", "      A  B  C  D  E  F  G  H  \n");
 }
 
-void freeBoard(BOARD board)
+void freeBoard(Board board)
 {
   int x, y;
   Piece *square;
@@ -154,6 +155,12 @@ int validateCoords(char *coords)
     return 0;
   }
 
+  if (coords[0] == coords[3] && coords[1] == coords[4])
+  {
+    printf("%s\n", "Cannot move piece to same space!");
+    return 0;
+  }
+
   return 1;
 }
 
@@ -161,37 +168,63 @@ Move parseCoords(char *coords)
 {
   Move move;
   move.fromX = coords[0] - 65;
-  move.fromY = coords[1] - 8;
+  move.fromY = coords[1] - 49;
   move.toX = coords[3] - 65;
-  move.toY = coords[4] - 8;
+  move.toY = coords[4] - 49;
 
   return move;
 }
 
-int validateTurn(BOARD board, enum Colour player, char *coords)
+int validateTurn(Board board, Move move, Piece *piece, enum Colour player)
 {
-  if (!validateCoords(coords))
+  if (piece == NULL) 
   {
+    printf("%s", "Cannot move a non-existent piece!\n");
     return 0;
+  }
+  
+  if (piece->colour != player) {
+    printf("%s Player! That is not your piece!\n", player ? "WHITE" : "BLACK");
+    return 0;
+  }
+
+  switch (piece->type)
+  {
+    case PAWN:
+      return validatePawnMove(board, move, piece, player);
+      break;
+    default:
+      break;
   }
 
   return 1;
 }
 
-void executeTurn(BOARD board, enum Colour player)
+void executeTurn(Board board, enum Colour player)
 {
+  Move move;
+  Piece *piece;
   char inputCoords[7];
 
   printBoard(board);
 
-  printf("%s Player - Please input your move in the format [A1 B1]: ", player ? "WHITE" : "BLACK");
-  readInput(inputCoords, sizeof(inputCoords));
-
-  while (!validateTurn(board, player, inputCoords))
+  do
   {
-    printf("%s: ", "Please input your move in the format [A1 B1]");
-    readInput(inputCoords, sizeof(inputCoords));
-  }
+    do
+    {
+      printf("%s Player - Please input your move in the format [A1 B1]: ", player ? "WHITE" : "BLACK");
+      readInput(inputCoords, sizeof(inputCoords));
+    } while (!validateCoords(inputCoords));
+
+    move = parseCoords(inputCoords);
+    piece = board[move.fromY][move.fromX];
+
+  } while (!validateTurn(board, move, piece, player));
+
+  piece->timesMoved++;
+
+  board[move.toY][move.toX] = piece;
+  board[move.fromY][move.fromX] = NULL;
 }
 
 void clearInputBuffer()
@@ -215,11 +248,17 @@ void readInput(char *buffer, int size) {
 
 int main(int argc, char **args)
 {
-  BOARD board = {{NULL}};
+  int gameOver = 0, turn = 1;
+  Board board = {{NULL}};
 
   initialiseBoard(board);
 
-  executeTurn(board, WHITE);
+  do
+  {
+    executeTurn(board, (turn % 2));
+    system("clear");
+    turn++;
+  } while (!gameOver);
 
   freeBoard(board);
 

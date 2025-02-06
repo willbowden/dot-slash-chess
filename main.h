@@ -31,6 +31,12 @@ typedef struct ChessMove
 
 typedef struct ChessPiece *Board[8][8];
 
+typedef struct ChessGame
+{
+  Board board;
+  
+} Game;
+
 void initialiseBoard(Board board);
 void printBoard(Board board);
 void freeBoard(Board board);
